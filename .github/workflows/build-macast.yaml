@@ -184,25 +184,19 @@ jobs:
         uses: actions/checkout@v4
 
       - name: install create-dmg
-        run: brew install create-dmg
-
-      - name: install universal python
-        run: |
-          wget https://www.python.org/ftp/python/3.9.8/python-3.9.8-macos11.pkg
-          sudo installer -pkg python-3.9.8-macos11.pkg -target /
+        run: brew install create-dmg mpv
 
       - name: Install Requirement
         run: |
           pip3 install -r requirements/darwin.txt
           pip3 install py2app
-          wget https://laboratory.stolendata.net/~djinn/mpv_osx/mpv-latest.tar.gz
-          mkdir -p bin && tar --strip-components 2 -C bin -xzvf mpv-latest.tar.gz mpv.app/Contents/MacOS
+          mkdir -p bin && cp $(brew --prefix)/bin/mpv bin/
 
       - name: Build
         id: compile
         run: |
           for file in i18n/*; do msgfmt -o $file/LC_MESSAGES/macast.mo $file/LC_MESSAGES/macast.po;echo $file;done
-          python3 setup_py2app.py py2app --arch=x86_64
+          python3 setup_py2app.py py2app --arch=arm64
           cp -R bin dist/Macast.app/Contents/Resources/
           export VERSION=`cat macast/.version`
           echo "DIST_DMG=Macast-MacOS-v${VERSION}.dmg" >> $GITHUB_ENV
