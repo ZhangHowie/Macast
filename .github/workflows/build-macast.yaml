@@ -188,13 +188,16 @@ jobs:
 
       - name: Install Requirement
         run: |
-          pip3 install -r requirements/darwin.txt
-          pip3 install py2app
+          python3 -m venv .venv
+          source .venv/bin/activate
+          pip install -r requirements/darwin.txt
+          pip install py2app
           mkdir -p bin && cp $(brew --prefix)/bin/mpv bin/
 
       - name: Build
         id: compile
         run: |
+          source .venv/bin/activate
           for file in i18n/*; do msgfmt -o $file/LC_MESSAGES/macast.mo $file/LC_MESSAGES/macast.po;echo $file;done
           python3 setup_py2app.py py2app --arch=arm64
           cp -R bin dist/Macast.app/Contents/Resources/
