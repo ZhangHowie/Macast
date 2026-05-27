@@ -24,6 +24,9 @@ on:
         required: false
         default: 'false'
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   release:
     needs: [ build-nt, build-darwin, build-amd64, build-armv7 ]
