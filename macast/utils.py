@@ -23,7 +23,7 @@ elif sys.platform == 'win32':
 
 logger = logging.getLogger("Utils")
 DEFAULT_PORT = 0
-SETTING_DIR = appdirs.user_config_dir('Macast', 'xfangfang')
+SETTING_DIR = os.environ.get('MACAST_SETTING_DIR') or appdirs.user_config_dir('Macast', 'xfangfang')
 PROTOCOL_DIR = 'protocol'
 RENDERER_DIR = 'renderer'
 

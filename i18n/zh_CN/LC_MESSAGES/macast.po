@@ -150,6 +150,27 @@ msgstr "播放器相关设置"
 msgid "Reload Player"
 msgstr "重载播放器"
 
+msgid "Cache Duration"
+msgstr "缓冲时长"
+
+msgid "0 seconds"
+msgstr "0 秒"
+
+msgid "2 seconds"
+msgstr "2 秒"
+
+msgid "5 seconds"
+msgstr "5 秒"
+
+msgid "10 seconds"
+msgstr "10 秒"
+
+msgid "30 seconds"
+msgstr "30 秒"
+
+msgid "60 seconds"
+msgstr "60 秒"
+
 msgid "please wait"
 msgstr "请等待"
 

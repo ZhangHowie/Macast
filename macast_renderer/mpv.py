@@ -28,6 +28,9 @@ logger = logging.getLogger("MPVRenderer")
 logger.setLevel(logging.INFO)
 
 
+CACHE_SECS_OPTIONS = [0, 2, 5, 10, 30, 60]
+
+
 class ObserveProperty(Enum):
     volume = 1
     time_pos = 2
@@ -243,7 +246,6 @@ class MPVRenderer(Renderer):
                 self.playing = False
                 self.set_state_stop()
             elif res['event'] == 'playback-restart':
-                # video is ready to play
                 if self.pause:
                     self.set_state_pause()
                 else:
@@ -343,10 +345,14 @@ class MPVRenderer(Renderer):
                 '--on-all-workspaces',
                 '--hwdec=yes',
                 '--save-position-on-quit=yes',
+                '--no-osc',
                 '--script-opts=osc-timetotal=yes,osc-layout=bottombar,' +
                 'osc-title=${title},osc-showwindowed=yes,' +
                 'osc-seekbarstyle=bar,osc-visibility=auto'
             ]
+
+            cache_secs = Setting.get(SettingProperty.PlayerCacheSecs, 0)
+            params.append(f'--cache-secs={cache_secs}')
 
             ontop = Setting.get(SettingProperty.PlayerOntop,
                                 default=SettingProperty.PlayerOntop_True.value)
@@ -505,12 +511,15 @@ class SettingProperty(Enum):
 
     PlayerDefaultVolume = 500
 
+    PlayerCacheSecs = 600
+
 
 class MPVRendererSetting(RendererSetting):
     def __init__(self):
         self.playerPositionItem = None
         self.playerSizeItem = None
         self.playerHWItem = None
+        self.playerCacheItem = None
         Setting.load()
         self.setting_player_size = Setting.get(SettingProperty.PlayerSize,
                                                SettingProperty.PlayerSize_Normal.value)
@@ -520,6 +529,7 @@ class MPVRendererSetting(RendererSetting):
                                              SettingProperty.PlayerHW_Enable.value)
         self.setting_player_ontop = Setting.get(SettingProperty.PlayerOntop,
                                                 SettingProperty.PlayerOntop_True.value)
+        self.setting_player_cache = Setting.get(SettingProperty.PlayerCacheSecs, 0)
 
     def build_menu(self):
         self.playerPositionItem = MenuItem(_("Player Position"),
@@ -572,6 +582,21 @@ class MPVRendererSetting(RendererSetting):
                                          self.on_renderer_hw_toggled)
             if self.setting_player_hw != SettingProperty.PlayerHW_Disable:
                 self.playerHWItem.checked = True
+        self.playerCacheItem = MenuItem(_("Cache Duration"),
+                                        children=App.build_menu_item_group([
+                                            _("0 seconds"),
+                                            _("2 seconds"),
+                                            _("5 seconds"),
+                                            _("10 seconds"),
+                                            _("30 seconds"),
+                                            _("60 seconds"),
+                                        ], self.on_cache_secs_clicked))
+        try:
+            cache_idx = CACHE_SECS_OPTIONS.index(self.setting_player_cache)
+        except ValueError:
+            cache_idx = 0
+        self.playerCacheItem.items()[cache_idx].checked = True
+
         self.playerPositionItem.items()[self.setting_player_position].checked = True
         self.playerSizeItem.items()[self.setting_player_size].checked = True
         self.playerOntopItem.checked = True if self.setting_player_ontop == 1 else False
@@ -582,6 +607,7 @@ class MPVRendererSetting(RendererSetting):
             self.playerSizeItem,
             self.playerHWItem,
             self.playerOntopItem,
+            self.playerCacheItem,
         ]
 
     def reloadPlayer(self):
@@ -642,4 +668,13 @@ class MPVRendererSetting(RendererSetting):
                 i.checked = False
             self.playerPositionItem.items()[4].checked = True
             Setting.set(SettingProperty.PlayerPosition, SettingProperty.PlayerPosition_Center.value)
+        self.reloadPlayer()
+
+    def on_cache_secs_clicked(self, item):
+        for i in self.playerCacheItem.items():
+            i.checked = False
+        item.checked = True
+        secs = CACHE_SECS_OPTIONS[item.data]
+        self.setting_player_cache = secs
+        Setting.set(SettingProperty.PlayerCacheSecs, secs)
         self.reloadPlayer()

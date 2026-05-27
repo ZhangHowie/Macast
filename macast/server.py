@@ -167,7 +167,9 @@ class Service:
             usn = Setting.get_usn(refresh=True)
             logger.error("Change usn to: {}".format(usn))
             Setting.set(SettingProperty.ApplicationPort, port)
-            name = "Macast({0:04d})".format(random.randint(0, 9999))
+            friendly = Setting.get_friendly_name()
+            prefix = friendly.rsplit('(', 1)[0].strip() or 'Macast'
+            name = "{0}({1:04d})".format(prefix, random.randint(0, 9999))
             logger.error("Change name to: {}".format(name))
             Setting.set_temp_friendly_name(name)
             self.protocol.handler.reload()
